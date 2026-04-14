@@ -6,6 +6,7 @@ import (
 
 	"github.com/bbieniek/terraform-provider-brevo/internal/domain"
 	"github.com/bbieniek/terraform-provider-brevo/internal/sender"
+	"github.com/bbieniek/terraform-provider-brevo/internal/template"
 	lib "github.com/getbrevo/brevo-go/lib"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -83,6 +84,7 @@ func (p *brevoProvider) Resources(_ context.Context) []func() resource.Resource 
 	return []func() resource.Resource{
 		domain.NewResource,
 		sender.NewResource,
+		template.NewResource,
 	}
 }
 
