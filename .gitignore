@@ -31,8 +31,5 @@ go.work.sum
 # .idea/
 # .vscode/
 
-# Worktrees
-.worktrees/
-
 # Superpowers
 docs/superpowers/
