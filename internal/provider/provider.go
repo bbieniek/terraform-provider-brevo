@@ -95,5 +95,6 @@ func (p *brevoProvider) DataSources(_ context.Context) []func() datasource.DataS
 		domain.NewDataSource,
 		sender.NewDataSource,
 		template.NewDataSource,
+		webhook.NewDataSource,
 	}
 }
