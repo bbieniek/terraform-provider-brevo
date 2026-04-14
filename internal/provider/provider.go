@@ -92,5 +92,6 @@ func (p *brevoProvider) DataSources(_ context.Context) []func() datasource.DataS
 	return []func() datasource.DataSource{
 		domain.NewDataSource,
 		sender.NewDataSource,
+		template.NewDataSource,
 	}
 }
