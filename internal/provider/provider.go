@@ -85,5 +85,7 @@ func (p *brevoProvider) Resources(_ context.Context) []func() resource.Resource 
 }
 
 func (p *brevoProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{}
+	return []func() datasource.DataSource{
+		domain.NewDataSource,
+	}
 }
