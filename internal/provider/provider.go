@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/bbieniek/terraform-provider-brevo/internal/domain"
 	lib "github.com/getbrevo/brevo-go/lib"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -78,7 +79,9 @@ func (p *brevoProvider) Configure(ctx context.Context, req provider.ConfigureReq
 }
 
 func (p *brevoProvider) Resources(_ context.Context) []func() resource.Resource {
-	return []func() resource.Resource{}
+	return []func() resource.Resource{
+		domain.NewResource,
+	}
 }
 
 func (p *brevoProvider) DataSources(_ context.Context) []func() datasource.DataSource {
