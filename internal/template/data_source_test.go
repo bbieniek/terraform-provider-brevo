@@ -12,7 +12,7 @@ import (
 
 func TestAccEmailTemplateDataSource(t *testing.T) {
 	rName := acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum)
-	templateName := fmt.Sprintf("tf-test-%s", rName)
+	templateName := fmt.Sprintf("tf-test-ds-%s", rName)
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testprovider.ProtoV6ProviderFactories(),
@@ -39,8 +39,8 @@ resource "brevo_email_template" "test" {
   name         = %q
   subject      = "Test Subject"
   html_content = "<html><body><h1>Hello</h1></body></html>"
-  sender_name  = "Test Sender"
-  sender_email = "test@example.com"
+  sender_name  = "Sender"
+  sender_email = "sender@example.com"
 }
 
 data "brevo_email_template" "test" {

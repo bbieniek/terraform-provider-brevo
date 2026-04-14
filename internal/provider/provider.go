@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/bbieniek/terraform-provider-brevo/internal/common"
 	"github.com/bbieniek/terraform-provider-brevo/internal/domain"
 	"github.com/bbieniek/terraform-provider-brevo/internal/sender"
 	"github.com/bbieniek/terraform-provider-brevo/internal/template"
@@ -77,8 +78,9 @@ func (p *brevoProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	cfg.AddDefaultHeader("api-key", apiKey)
 	client := lib.NewAPIClient(cfg)
 
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	data := &common.ProviderData{Client: client, APIKey: apiKey}
+	resp.DataSourceData = data
+	resp.ResourceData = data
 }
 
 func (p *brevoProvider) Resources(_ context.Context) []func() resource.Resource {

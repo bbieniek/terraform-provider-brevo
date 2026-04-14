@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/bbieniek/terraform-provider-brevo/internal/common"
 	lib "github.com/getbrevo/brevo-go/lib"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -57,13 +58,13 @@ func (d *senderDataSource) Configure(_ context.Context, req datasource.Configure
 	if req.ProviderData == nil {
 		return
 	}
-	client, ok := req.ProviderData.(*lib.APIClient)
+	data, ok := req.ProviderData.(*common.ProviderData)
 	if !ok {
 		resp.Diagnostics.AddError("Unexpected DataSource Configure Type",
-			fmt.Sprintf("Expected *lib.APIClient, got: %T", req.ProviderData))
+			fmt.Sprintf("Expected *common.ProviderData, got: %T", req.ProviderData))
 		return
 	}
-	d.client = client
+	d.client = data.Client
 }
 
 func (d *senderDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

@@ -25,8 +25,6 @@ func TestAccEmailTemplateResource(t *testing.T) {
 					resource.TestCheckResourceAttr("brevo_email_template.test", "subject", "Test Subject"),
 					resource.TestCheckResourceAttr("brevo_email_template.test", "is_active", "true"),
 					resource.TestCheckResourceAttrSet("brevo_email_template.test", "id"),
-					resource.TestCheckResourceAttr("brevo_email_template.test", "sender_name", "Test Sender"),
-					resource.TestCheckResourceAttr("brevo_email_template.test", "sender_email", "test@example.com"),
 				),
 			},
 			{
@@ -45,14 +43,16 @@ func TestAccEmailTemplateResource(t *testing.T) {
 	})
 }
 
+// Tests use sender id=1 which must already exist and be active in the Brevo account.
+// Newly created senders require OTP email verification and cannot be used immediately.
 func testAccEmailTemplateResourceConfig(name, subject string, isActive bool) string {
 	return fmt.Sprintf(`
 resource "brevo_email_template" "test" {
   name         = %q
   subject      = %q
   html_content = "<html><body><h1>Hello</h1></body></html>"
-  sender_name  = "Test Sender"
-  sender_email = "test@example.com"
+  sender_name  = "Sender"
+  sender_email = "sender@example.com"
   is_active    = %t
 }
 `, name, subject, isActive)

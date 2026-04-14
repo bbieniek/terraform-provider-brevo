@@ -1,10 +1,15 @@
 package template
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"strconv"
 
+	"github.com/bbieniek/terraform-provider-brevo/internal/common"
 	lib "github.com/getbrevo/brevo-go/lib"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -23,6 +28,7 @@ var (
 
 type templateResource struct {
 	client *lib.APIClient
+	apiKey string
 }
 
 type templateResourceModel struct {
@@ -98,13 +104,14 @@ func (r *templateResource) Configure(_ context.Context, req resource.ConfigureRe
 	if req.ProviderData == nil {
 		return
 	}
-	client, ok := req.ProviderData.(*lib.APIClient)
+	data, ok := req.ProviderData.(*common.ProviderData)
 	if !ok {
 		resp.Diagnostics.AddError("Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *lib.APIClient, got: %T", req.ProviderData))
+			fmt.Sprintf("Expected *common.ProviderData, got: %T", req.ProviderData))
 		return
 	}
-	r.client = client
+	r.client = data.Client
+	r.apiKey = data.APIKey
 }
 
 func (r *templateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -166,7 +173,7 @@ func (r *templateResource) Read(ctx context.Context, req resource.ReadRequest, r
 		state.SenderEmail = types.StringValue(tmpl.Sender.Email)
 	}
 
-	if tmpl.ReplyTo == "" {
+	if tmpl.ReplyTo == "" || tmpl.ReplyTo == "[DEFAULT_REPLY_TO]" {
 		state.ReplyTo = types.StringNull()
 	} else {
 		state.ReplyTo = types.StringValue(tmpl.ReplyTo)
@@ -194,27 +201,51 @@ func (r *templateResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	body := lib.UpdateSmtpTemplate{
-		TemplateName: plan.Name.ValueString(),
-		Subject:      plan.Subject.ValueString(),
-		HtmlContent:  plan.HtmlContent.ValueString(),
-		Sender: &lib.UpdateSmtpTemplateSender{
-			Name:  plan.SenderName.ValueString(),
-			Email: plan.SenderEmail.ValueString(),
+	// Use raw HTTP because the SDK uses omitempty on bool fields,
+	// which means IsActive=false is never sent (it's the zero value).
+	updateMap := map[string]interface{}{
+		"templateName": plan.Name.ValueString(),
+		"subject":      plan.Subject.ValueString(),
+		"htmlContent":  plan.HtmlContent.ValueString(),
+		"sender": map[string]string{
+			"name":  plan.SenderName.ValueString(),
+			"email": plan.SenderEmail.ValueString(),
 		},
-		IsActive: plan.IsActive.ValueBool(),
+		"isActive": plan.IsActive.ValueBool(),
 	}
-
 	if !plan.ReplyTo.IsNull() && !plan.ReplyTo.IsUnknown() {
-		body.ReplyTo = plan.ReplyTo.ValueString()
+		updateMap["replyTo"] = plan.ReplyTo.ValueString()
 	}
 	if !plan.Tag.IsNull() && !plan.Tag.IsUnknown() {
-		body.Tag = plan.Tag.ValueString()
+		updateMap["tag"] = plan.Tag.ValueString()
 	}
 
-	_, err := r.client.TransactionalEmailsApi.UpdateSmtpTemplate(ctx, state.ID.ValueInt64(), body)
+	jsonBody, err := json.Marshal(updateMap)
+	if err != nil {
+		resp.Diagnostics.AddError("Error encoding update request", err.Error())
+		return
+	}
+
+	url := fmt.Sprintf("https://api.brevo.com/v3/smtp/templates/%d", state.ID.ValueInt64())
+	httpReq, err := http.NewRequest("PUT", url, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		resp.Diagnostics.AddError("Error building update request", err.Error())
+		return
+	}
+	httpReq.Header.Set("api-key", r.apiKey)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating email template", err.Error())
+		return
+	}
+	defer httpResp.Body.Close()
+
+	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(httpResp.Body)
+		resp.Diagnostics.AddError("Error updating email template",
+			fmt.Sprintf("API returned %d: %s", httpResp.StatusCode, string(respBody)))
 		return
 	}
 
@@ -230,7 +261,25 @@ func (r *templateResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	_, err := r.client.TransactionalEmailsApi.DeleteSmtpTemplate(ctx, state.ID.ValueInt64())
+	// Brevo requires templates to be deactivated before deletion.
+	// Use raw HTTP because the SDK sends all zero-value fields which the API rejects.
+	url := fmt.Sprintf("https://api.brevo.com/v3/smtp/templates/%d", state.ID.ValueInt64())
+	body := bytes.NewBufferString(`{"isActive":false}`)
+	httpReq, err := http.NewRequest("PUT", url, body)
+	if err != nil {
+		resp.Diagnostics.AddError("Error building deactivation request", err.Error())
+		return
+	}
+	httpReq.Header.Set("api-key", r.apiKey)
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		resp.Diagnostics.AddError("Error deactivating email template", err.Error())
+		return
+	}
+	httpResp.Body.Close()
+
+	_, err = r.client.TransactionalEmailsApi.DeleteSmtpTemplate(ctx, state.ID.ValueInt64())
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting email template", err.Error())
 		return

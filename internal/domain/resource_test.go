@@ -24,12 +24,14 @@ func TestAccDomainResource(t *testing.T) {
 					resource.TestCheckResourceAttrSet("brevo_domain.test", "dkim_record_1"),
 					resource.TestCheckResourceAttrSet("brevo_domain.test", "dkim_record_2"),
 					resource.TestCheckResourceAttrSet("brevo_domain.test", "brevo_code"),
+					resource.TestCheckResourceAttrSet("brevo_domain.test", "verified"),
 				),
 			},
 			{
-				ResourceName:      "brevo_domain.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "brevo_domain.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateId:           domainName,
 			},
 		},
 	})

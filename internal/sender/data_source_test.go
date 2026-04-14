@@ -13,7 +13,7 @@ import (
 func TestAccSenderDataSource(t *testing.T) {
 	rName := acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum)
 	senderName := fmt.Sprintf("tf-test-%s", rName)
-	senderEmail := fmt.Sprintf("tf-test-%s@example.com", rName)
+	senderEmail := fmt.Sprintf("tf-test-%s@gmail.com", rName)
 
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testprovider.ProtoV6ProviderFactories(),

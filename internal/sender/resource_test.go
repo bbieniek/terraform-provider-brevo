@@ -13,7 +13,7 @@ import (
 func TestAccSenderResource(t *testing.T) {
 	rName := acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum)
 	senderName := fmt.Sprintf("tf-test-%s", rName)
-	senderEmail := fmt.Sprintf("tf-test-%s@example.com", rName)
+	senderEmail := fmt.Sprintf("tf-test-%s@gmail.com", rName)
 	updatedName := fmt.Sprintf("tf-test-%s-updated", rName)
 
 	resource.Test(t, resource.TestCase{
