@@ -241,7 +241,7 @@ func (r *domainResource) readDomainConfig(_ context.Context, model *domainResour
 		diagnostics.AddError("Error reading domain configuration", err.Error())
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)

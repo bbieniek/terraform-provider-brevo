@@ -240,7 +240,7 @@ func (r *templateResource) Update(ctx context.Context, req resource.UpdateReques
 		resp.Diagnostics.AddError("Error updating email template", err.Error())
 		return
 	}
-	defer httpResp.Body.Close()
+	defer func() { _ = httpResp.Body.Close() }()
 
 	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(httpResp.Body)
@@ -277,7 +277,7 @@ func (r *templateResource) Delete(ctx context.Context, req resource.DeleteReques
 		resp.Diagnostics.AddError("Error deactivating email template", err.Error())
 		return
 	}
-	httpResp.Body.Close()
+	_ = httpResp.Body.Close()
 
 	_, err = r.client.TransactionalEmailsApi.DeleteSmtpTemplate(ctx, state.ID.ValueInt64())
 	if err != nil {
