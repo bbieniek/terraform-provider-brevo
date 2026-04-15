@@ -56,3 +56,5 @@ jobs:
         env:
           TF_ACC: "1"
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          BREVO_SENDER_NAME: ${{ secrets.BREVO_SENDER_NAME }}
+          BREVO_SENDER_EMAIL: ${{ secrets.BREVO_SENDER_EMAIL }}

@@ -2,6 +2,7 @@ package template_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -34,17 +35,19 @@ func TestAccEmailTemplateDataSource(t *testing.T) {
 }
 
 func testAccEmailTemplateDataSourceConfig(name string) string {
+	senderName := os.Getenv("BREVO_SENDER_NAME")
+	senderEmail := os.Getenv("BREVO_SENDER_EMAIL")
 	return fmt.Sprintf(`
 resource "brevo_email_template" "test" {
   name         = %q
   subject      = "Test Subject"
   html_content = "<html><body><h1>Hello</h1></body></html>"
-  sender_name  = "Sender"
-  sender_email = "sender@example.com"
+  sender_name  = %q
+  sender_email = %q
 }
 
 data "brevo_email_template" "test" {
   id = brevo_email_template.test.id
 }
-`, name)
+`, name, senderName, senderEmail)
 }

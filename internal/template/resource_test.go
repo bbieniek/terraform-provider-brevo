@@ -2,6 +2,7 @@ package template_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -46,14 +47,16 @@ func TestAccEmailTemplateResource(t *testing.T) {
 // Tests use sender id=1 which must already exist and be active in the Brevo account.
 // Newly created senders require OTP email verification and cannot be used immediately.
 func testAccEmailTemplateResourceConfig(name, subject string, isActive bool) string {
+	senderName := os.Getenv("BREVO_SENDER_NAME")
+	senderEmail := os.Getenv("BREVO_SENDER_EMAIL")
 	return fmt.Sprintf(`
 resource "brevo_email_template" "test" {
   name         = %q
   subject      = %q
   html_content = "<html><body><h1>Hello</h1></body></html>"
-  sender_name  = "Sender"
-  sender_email = "sender@example.com"
+  sender_name  = %q
+  sender_email = %q
   is_active    = %t
 }
-`, name, subject, isActive)
+`, name, subject, senderName, senderEmail, isActive)
 }
