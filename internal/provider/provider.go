@@ -5,7 +5,9 @@ import (
 	"os"
 
 	"github.com/bbieniek/terraform-provider-brevo/internal/common"
+	"github.com/bbieniek/terraform-provider-brevo/internal/contactattribute"
 	"github.com/bbieniek/terraform-provider-brevo/internal/domain"
+	"github.com/bbieniek/terraform-provider-brevo/internal/list"
 	"github.com/bbieniek/terraform-provider-brevo/internal/sender"
 	"github.com/bbieniek/terraform-provider-brevo/internal/template"
 	"github.com/bbieniek/terraform-provider-brevo/internal/webhook"
@@ -85,7 +87,9 @@ func (p *brevoProvider) Configure(ctx context.Context, req provider.ConfigureReq
 
 func (p *brevoProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		contactattribute.NewResource,
 		domain.NewResource,
+		list.NewResource,
 		sender.NewResource,
 		template.NewResource,
 		webhook.NewResource,
@@ -95,6 +99,7 @@ func (p *brevoProvider) Resources(_ context.Context) []func() resource.Resource 
 func (p *brevoProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		domain.NewDataSource,
+		list.NewDataSource,
 		sender.NewDataSource,
 		template.NewDataSource,
 		webhook.NewDataSource,
